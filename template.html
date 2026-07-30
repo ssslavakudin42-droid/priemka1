@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Башмачок · Приёмка v8</title>
+<script src="xlsx.full.min.js"></script>
+<style>
+:root{--choc:#3E2723;--gold:#FFC107;--cream:#FAF6EE;--bordo:#7B2B3A;--green:#1D9E75;--red:#C73E3E;--orange:#EF9F27;--line:#E5DACC;--muted:#8D7B72}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Manrope','Segoe UI',sans-serif;background:var(--cream);color:#2A1B17;padding-bottom:120px}
+header{background:var(--choc);color:#fff;padding:12px 16px;position:sticky;top:0;z-index:10}
+header .b{color:var(--gold);font-weight:800;font-size:12px;letter-spacing:.5px}
+header h1{font-size:18px;font-weight:800}
+.tabs{display:flex;background:var(--choc);position:sticky;top:58px;z-index:10}
+.tab{flex:1;text-align:center;color:#D6C6BE;font-weight:700;font-size:13.5px;padding:11px 4px;border-bottom:3px solid transparent;cursor:pointer}
+.tab.act{color:var(--gold);border-color:var(--gold)}
+.wrap{max-width:560px;margin:0 auto;padding:12px}
+.card{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:13px;margin-bottom:11px}
+label{font-size:11.5px;font-weight:700;color:var(--muted);display:block;margin:7px 0 3px}
+input,select{width:100%;font-size:16px;padding:10px 11px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--gold)}
+.row2{display:flex;gap:9px}.row2>div{flex:1}
+.btn{display:block;width:100%;background:var(--choc);color:var(--gold);font-weight:800;font-size:15.5px;border:none;border-radius:12px;padding:14px;cursor:pointer;font-family:inherit}
+.btn.sec{background:#fff;color:var(--choc);border:1.5px solid var(--choc)}
+.res{border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;margin-top:7px;cursor:pointer;background:#fff}
+.res:active{background:var(--cream)}
+.res .n{font-size:13.5px;font-weight:600}
+.res .m{font-size:11px;color:var(--muted);margin-top:2px}
+.tag{display:inline-block;font-size:10px;font-weight:700;border-radius:7px;padding:2px 6px;margin-left:5px}
+.t-green{background:#E3F4EE;color:var(--green)}.t-gold{background:#FFF3CC;color:#9A7400}.t-red{background:#F9E4E4;color:var(--red)}
+.sizes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}
+.szc{border:1.5px solid var(--line);border-radius:11px;padding:6px 4px;text-align:center}
+.szc.inbase{border-color:var(--green)}
+.szc .s{font-size:13px;font-weight:800;color:var(--choc)}
+.stp{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:3px}
+.stp button{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--line);background:var(--cream);font-size:19px;font-weight:800;color:var(--choc);cursor:pointer}
+.stp input{width:44px;border:none;text-align:center;font-size:18px;font-weight:800;padding:2px 0}
+.cart-item{border-bottom:1px solid var(--line);padding:9px 0;font-size:13.5px}
+.cart-item .nm{font-weight:600}
+.cart-item .dt{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-top:2px}
+.del{color:var(--red);font-weight:800;cursor:pointer;font-size:12.5px}
+.footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid var(--choc);padding:9px 13px;z-index:20}
+.footer .tot{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:7px}
+.hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45}
+h2{font-size:15.5px;color:var(--choc);margin-bottom:5px}
+.preview{background:var(--cream);border:1.5px dashed var(--choc);border-radius:10px;padding:9px 11px;font-size:14px;font-weight:700;margin-top:9px;word-break:break-word}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{border:1.5px solid var(--line);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;background:#fff}
+.chip.on{background:var(--choc);color:var(--gold);border-color:var(--choc)}
+.chip.mini{padding:4px 9px;font-size:12px}
+.page{display:none}.page.act{display:block}
+.rowbtns{display:flex;gap:8px;margin-top:9px}
+.rowbtns .btn{flex:1}
+.match{border-radius:10px;padding:8px 11px;margin-top:7px;font-size:12.5px;font-weight:600;line-height:1.4}
+.match.ok{background:#E3F4EE;border:1.5px solid var(--green);color:#0F6B4E}
+.match.new{background:#FFF3CC;border:1.5px solid var(--gold);color:#7A5C00}
+.match.warn{background:#FDEFD9;border:1.5px solid var(--orange);color:#8A5200}
+</style>
+</head>
+<body>
+<header><div class="b">БАШМАЧОК</div><h1>Приёмка товара</h1></header>
+<div class="tabs">
+  <div class="tab act" data-p="p1" onclick="tab('p1')">Документ</div>
+  <div class="tab" data-p="p3" onclick="tab('p3')">Конструктор</div>
+</div>
+<div class="wrap">
+
+<!-- ДОКУМЕНТ -->
+<div class="page act" id="p1">
+<div class="card">
+  <h2>Шапка документа</h2>
+  <div class="row2">
+    <div><label>Склад приёмки</label><input id="sklad" list="sklads" value="Склад"><datalist id="sklads"><option>Склад</option><option>Б1</option><option>Б2</option><option>Б3</option><option>Б4</option><option>Б5</option><option>Б6_1</option><option>Б6_2</option><option>Б6_3</option><option>Б7</option><option>Б8</option><option>Б9</option><option>Б10</option><option>Б11</option><option>Б12</option><option>Б13</option><option>Б14</option><option>Т1</option><option>Т3</option></datalist></div>
+    <div><label>Груз / накладная</label><input id="gruz" placeholder="Б6-1, 433-12..."></div>
+  </div>
+  <div class="hint">Заполни один раз — дальше принимай товар в «Конструкторе». Черновик можно сохранить и продолжить на другом устройстве.</div>
+  <div class="rowbtns">
+    <button class="btn sec" onclick="saveDraft()">💾 Сохранить черновик</button>
+    <button class="btn sec" onclick="document.getElementById('draftFile').click()">📂 Открыть черновик</button>
+  </div>
+  <input type="file" id="draftFile" accept=".json" style="display:none" onchange="loadDraft(event)">
+</div>
+<div class="card">
+  <h2>Принято в этой сессии</h2>
+  <div id="cart"></div>
+  <div class="hint">Зелёная метка «база» — товар найден в Айтиде по названию, встанет в свою карточку. Жёлтая «новая» — карточка создастся при импорте. Не закрывай вкладку, пока не выгрузил Excel или черновик.</div>
+</div>
+</div>
+
+<!-- КОНСТРУКТОР -->
+<div class="page" id="p3">
+<div class="card">
+  <h2>Собери как на листочке — сверху вниз</h2>
+  <label>1. Сезон (кроссовки, туфли обычно без сезона)</label>
+  <div class="chips" id="cSea"></div>
+  <label>2. Что принимаем</label>
+  <div class="chips" id="cCat"></div>
+  <label>3. Кому</label>
+  <div class="chips" id="cPol"></div>
+  <div class="row2" style="margin-top:9px">
+    <div><label>4. Артикул (с листочка)</label><input id="cArt" placeholder="2398-9"></div>
+    <div><label>Бренд / линия (необязательно)</label><input id="cBrand" list="brands" placeholder="загадка, онсун..."></div>
+  </div>
+  <datalist id="brands"><option>загадка</option><option>онсун</option><option>марко джовани</option><option>меко мело</option><option>гуан</option><option>алаифа</option><option>соко соло</option><option>царевна</option><option>царевич</option><option>фаворит</option><option>тое</option><option>сопрано</option><option>федерико баггио</option><option>каджила</option><option>бота</option><option>император</option><option>дино богати</option><option>гия</option><option>луи вито</option><option>лувито</option><option>лолита</option><option>крокс</option><option>пломе</option><option>пусу</option><option>миллионер</option><option>калория</option><option>радуга</option><option>лоро пиано</option><option>каладис</option><option>алеми</option><option>венси</option><option>мисс леди</option><option>гамма</option><option>шалунишки</option></datalist>
+  <label style="margin-top:9px">5. Размеры от–до</label>
+  <div class="row2"><input id="cFrom" type="number" inputmode="numeric" placeholder="32"><input id="cTo" type="number" inputmode="numeric" placeholder="37"></div>
+  <div class="chips" id="cRanges"></div>
+  <label id="gridLab">Количество по размерам</label>
+  <div class="chips" id="presetRow">
+    <div class="chip mini" onclick="preset(6,true)">ряд ×6 (38-й — 12)</div>
+    <div class="chip mini" onclick="preset(6,false)">все ×6</div>
+    <div class="chip mini" onclick="preset(4,false)">все ×4</div>
+    <div class="chip mini" onclick="preset(2,false)">все ×2</div>
+    <div class="chip mini" style="border-color:var(--green);color:var(--green)" onclick="prinos()">+ принос (ещё столько же)</div>
+    <div class="chip mini" style="border-color:var(--red);color:var(--red)" onclick="clearGrid()">сброс</div>
+  </div>
+  <div id="cSizes" class="sizes"></div>
+  <label style="margin-top:9px">6. Цвет</label>
+  <div class="chips" id="cCol"></div>
+  <label>Материал</label>
+  <div class="chips" id="cMat"></div>
+  <label>Фасон (необязательно)</label>
+  <div class="chips" id="cFas"></div>
+  <label style="margin-top:9px">Название (собирается само, можно поправить)</label>
+  <input id="cName" placeholder="соберётся автоматически">
+  <div id="matchBox"></div>
+  <button class="btn" style="margin-top:10px" onclick="addNew()">✓ Добавить в приёмку</button>
+  <div class="hint">Цены здесь не нужны — их проставит оператор перед импортом. Главное: точное название, артикул и количество.</div>
+</div>
+</div>
+
+</div>
+<div class="footer">
+  <div class="tot"><span id="totPos">0 поз.</span><span id="totQty">0 пар</span></div>
+  <button class="btn" onclick="exportXlsx()">⬇ Excel для Айтиды</button>
+</div>
+
+<script src="base_data.js"></script>
+<script>
+/* ---------- индексы базы ---------- */
+const szre=/\s(\d{2})р\.?$/;
+const models={};              // базовое имя (без " NNр") -> {art, sizes:[{name,code,size}]}
+const singleIdx=new Map();    // полное имя без размерного деления -> {code,art}
+const artIdx={};              // артикул(lower) -> Set базовых имён
+for(const [n,c,a] of BASE){
+  const ln=n.toLowerCase();
+  const m=ln.match(szre);
+  if(m){
+    const base=ln.replace(szre,'').trim();
+    (models[base]=models[base]||{art:a,sizes:[]}).sizes.push({name:n,code:c,size:m[1]});
+    if(a){const k=String(a).toLowerCase();(artIdx[k]=artIdx[k]||new Set()).add(base);}
+  }else{
+    if(!singleIdx.has(ln))singleIdx.set(ln,{code:c,art:a,name:n});
+    if(a){const k=String(a).toLowerCase();(artIdx[k]=artIdx[k]||new Set()).add(ln);}
+  }
+}
+let cart=[];
+function tab(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('act'));document.getElementById(p).classList.add('act');document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('act',t.dataset.p===p));}
+
+/* ---------- словари (частоты из базы 27.07.2026) ---------- */
+const CATS=['кроссовки','ботинки','туфли','сандали','босоножки','шлепки','сапоги','полусапоги','угги','тапочки','кеды','сланцы'];
+const POLS=[['мальч.','мальчик'],['дев.','девочка'],['муж.','мужское'],['жен.','женское'],['дет.','детское']];
+const COLS=['черн','беж','бел','сер','кор','син','роз','разн','фиол','хаки','зел','красн','голуб','желт','борд'];
+const MATS=['кожа','текст','замша','лак','иззи','дутыш','джинс','флис','рез','стразы'];
+const FAS=['закр','откр','спорт','клас','лоф','бал','мокасины','слипоны','кабл','груб','перф'];
+const RANGES_KID=['22-27','23-28','26-31','27-32','28-33','31-36','32-37','36-41'];
+const RANGES_M=['40-45','39-44','40-44','41-46'];
+const RANGES_W=['36-40','36-41','35-40','37-41'];
+const sel={cat:null,pol:null,col:null,mat:null,sea:null,fas:null};
+function isKid(){return sel.pol==='мальч.'||sel.pol==='дев.';}
+
+function chips(id,arr,key){
+  const el=document.getElementById(id);
+  arr.forEach(v=>{
+    const t=Array.isArray(v)?v[0]:v, show=Array.isArray(v)?v[1]:v;
+    const c=document.createElement('div');c.className='chip';c.textContent=show;
+    c.onclick=()=>{
+      sel[key]=sel[key]===t?null:t;
+      if(key==='cat')document.querySelectorAll('#cCat .chip').forEach(x=>x.classList.remove('on'));
+      else [...el.children].forEach(x=>x.classList.remove('on'));
+      if(sel[key])c.classList.add('on');
+      if(key==='cat')refreshSeason();
+      if(key==='pol')refreshRanges();
+      nameEdited=false; buildName();
+    };
+    el.appendChild(c);
+  });
+}
+chips('cCat',CATS,'cat');chips('cPol',POLS,'pol');chips('cCol',COLS,'col');chips('cMat',MATS,'mat');chips('cFas',FAS,'fas');
+
+/* сезон обуви: без / з. / л. */
+function refreshSeason(){
+  const el=document.getElementById('cSea');el.innerHTML='';
+  const list=[['','без сезона'],['з','зима'],['л','лето']];
+  if(sel.sea&&!list.some(([t])=>t===sel.sea))sel.sea=null;
+  list.forEach(([t,show])=>{
+    const c=document.createElement('div');c.className='chip'+((t||null)===sel.sea?' on':'');c.textContent=show;
+    c.onclick=()=>{sel.sea=t||null;[...el.children].forEach(x=>x.classList.remove('on'));c.classList.add('on');nameEdited=false;buildName();};
+    el.appendChild(c);
+  });
+}
+refreshSeason();
+
+/* быстрые диапазоны размеров — подстраиваются под «кому»:
+   мальч/дев — детские ряды, муж — 40-45, жен — 36-40 */
+function refreshRanges(){
+  const el=document.getElementById('cRanges');el.innerHTML='';
+  const list=sel.pol==='муж.'?RANGES_M:sel.pol==='жен.'?RANGES_W:RANGES_KID;
+  list.forEach(r=>{
+    const c=document.createElement('div');c.className='chip mini';c.textContent=r;
+    c.onclick=()=>{const[f,t]=r.split('-');document.getElementById('cFrom').value=f;document.getElementById('cTo').value=t;nameEdited=false;buildName();};
+    el.appendChild(c);
+  });
+}
+refreshRanges();
+
+let nameEdited=false; // человек правил имя руками — не перетирать
+['cBrand','cArt','cFrom','cTo'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{nameEdited=false;buildName();}));
+['cFrom','cTo'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{
+  let f=+document.getElementById('cFrom').value||0,t=+document.getElementById('cTo').value||0;
+  if(f&&t&&f>t){document.getElementById('cFrom').value=t;document.getElementById('cTo').value=f;}
+  nameEdited=false;buildName();
+}));
+document.getElementById('cName').addEventListener('input',()=>{nameEdited=true;checkMatch();renderGrid();});
+
+function norm(s){return s.toLowerCase().replace(/\s+/g,' ').trim();}
+function isShoe(){return true;}
+
+/* ---------- сборка имени строго по конвенции базы ----------
+   обувь:  [з.|л.][м.]категория [пол.[бренд]|бренд] артикул [(f-t)] [цвет[.мат][.фасон]]
+   «м.» ставится сам для мальч./дев. (так в 99,5% базы)
+   (f-t) в имени ТОЛЬКО у детских: у муж/жен диапазона в названии нет
+   (в базе: детские с диапазоном 99,7%, взрослые — 0,2%)                      */
+function buildName(){
+  if(nameEdited){checkMatch();renderGrid();return;}
+  const b=norm(document.getElementById('cBrand').value);
+  const a=document.getElementById('cArt').value.trim();
+  let f=+document.getElementById('cFrom').value||0,t=+document.getElementById('cTo').value||0;
+  if(f&&t&&f>t){renderGrid();return;} // во время набора не трогаем — свап по завершении ввода
+  let name='';
+  if(sel.cat)name=(sel.sea?sel.sea+'.':'')+(isKid()?'м.':'')+sel.cat;
+  let mid='';
+  if(sel.pol) mid=sel.pol+(b||'');       // пол.бренд слитно, как в базе
+  else if(b) mid=b;
+  let tail=[sel.col,sel.mat,sel.fas].filter(Boolean).join('.');
+  name=[name,mid,a,(isShoe()&&f&&t&&isKid())?('('+f+'-'+t+')'):'',tail].filter(Boolean).join(' ');
+  name=norm(name);
+  document.getElementById('cName').value=name;
+  checkMatch(); renderGrid();
+}
+
+/* ---------- сверка с базой: названия должны совпадать 1-в-1 ---------- */
+function checkMatch(){
+  const W=document.getElementById('matchBox');W.innerHTML='';
+  const name=norm(document.getElementById('cName').value);
+  if(name.length<4)return;
+  const mo=models[name];
+  if(mo){
+    const szs=mo.sizes.map(x=>x.size).sort().join(', ');
+    W.innerHTML=`<div class="match ok">✓ Модель уже есть в базе (размеры: ${szs}). Пары встанут в свои карточки — ничего нового не создастся.</div>`;
+    return;
+  }
+  if(singleIdx.has(name)){
+    W.innerHTML=`<div class="match ok">✓ Такая карточка уже есть в базе — количество встанет в неё.</div>`;
+    return;
+  }
+  // артикул уже есть в базе? предложить точное имя из базы одним нажатием
+  const a=document.getElementById('cArt').value.trim().toLowerCase();
+  if(a&&artIdx[a]){
+    const hits=[...artIdx[a]].slice(0,3);
+    let h=`<div class="match warn">Артикул ${a} уже есть в базе. Если это тот же товар — нажми на название, оно подставится точно как в базе:</div>`;
+    hits.forEach(nm=>{h+=`<div class="res" data-adopt="${nm.replace(/"/g,'&quot;')}"><div class="n">${nm}</div></div>`;});
+    W.innerHTML=h;
+    W.querySelectorAll('[data-adopt]').forEach(el=>el.onclick=()=>{
+      document.getElementById('cName').value=el.dataset.adopt;nameEdited=true;checkMatch();renderGrid();
+    });
+    return;
+  }
+  W.innerHTML=`<div class="match new">Новая модель — карточки создадутся в Айтиде при импорте. Проверь, что название собрано без ошибок.</div>`;
+}
+
+/* ---------- сетка размеров ---------- */
+function szCell(label,val,inbase){return `<div class="szc${inbase?' inbase':''}"><div class="s">${label}</div><div class="stp"><button onclick="bump(this,-1)">−</button><input type="number" inputmode="numeric" value="${val}"><button onclick="bump(this,1)">+</button></div></div>`;}
+function bump(btn,d){const inp=btn.parentElement.querySelector('input');inp.value=Math.max(0,(+inp.value||0)+d);}
+function renderGrid(){
+  const S=document.getElementById('cSizes');
+  const keep={};S.querySelectorAll('.stp input').forEach(inp=>{keep[inp.closest('.szc').querySelector('.s').textContent]=+inp.value||0;});
+  S.innerHTML='';
+  const shoe=isShoe()||(!sel.cat);   // без категории считаем обувью — основной кейс
+  document.getElementById('presetRow').style.display=shoe?'flex':'none';
+  document.getElementById('gridLab').textContent=shoe?'Количество по размерам':'Общее количество';
+  if(!shoe){S.insertAdjacentHTML('beforeend',szCell('Кол-во',keep['Кол-во']||0,false));return;}
+  let f=+document.getElementById('cFrom').value||0,t=+document.getElementById('cTo').value||0;
+  const name=norm(document.getElementById('cName').value);
+  const mo=models[name];
+  const inBase=new Set(mo?mo.sizes.map(x=>+x.size):[]);
+  if(mo&&!(f&&t)){ // модель из базы, диапазон не задан — сетка из её размеров
+    mo.sizes.sort((x,y)=>x.size-y.size).forEach(s=>S.insertAdjacentHTML('beforeend',szCell(s.size,keep[s.size]||0,true)));
+    return;
+  }
+  if(f&&t&&t-f<=20)for(let s=f;s<=t;s++)S.insertAdjacentHTML('beforeend',szCell(s,keep[s]||0,inBase.has(s)));
+}
+let lastBase={};
+function preset(n,double38){
+  document.querySelectorAll('#cSizes .stp input').forEach(inp=>{
+    const sz=+inp.closest('.szc').querySelector('.s').textContent;
+    const v=(double38&&sz===38)?n*2:n;
+    inp.value=v; lastBase[sz]=v;
+  });
+}
+function prinos(){
+  document.querySelectorAll('#cSizes .stp input').forEach(inp=>{
+    const sz=+inp.closest('.szc').querySelector('.s').textContent;
+    const add=lastBase[sz]||(+inp.value||0);
+    inp.value=(+inp.value||0)+add;
+  });
+}
+function clearGrid(){lastBase={};document.querySelectorAll('#cSizes .stp input').forEach(inp=>inp.value=0);}
+
+/* ---------- добавление: совпало с базой → её карточки, нет → новые ---------- */
+function addNew(){
+  const name=norm(document.getElementById('cName').value);
+  const art=document.getElementById('cArt').value.trim();
+  if(!name){alert('Собери название: категория + кому + артикул');return;}
+  const shoe=isShoe()||(!sel.cat);
+  const mo=models[name];
+  let added=0, misses=[];
+  if(!shoe){
+    const inp=document.querySelector('#cSizes .stp input');
+    const q=+(inp?inp.value:0);
+    if(q>0){
+      const ex=singleIdx.get(name);
+      cart.push(ex?{name:ex.name,code:ex.code,art:ex.art||art,qty:q,isNew:false}
+                  :{name,code:'',art,qty:q,isNew:true});
+      added=q;
+    }
+  }else{
+    document.querySelectorAll('#cSizes .stp input').forEach(inp=>{
+      const q=+inp.value;if(q<=0)return;
+      const sz=inp.closest('.szc').querySelector('.s').textContent;
+      const ex=mo?mo.sizes.find(x=>+x.size===+sz):null;
+      if(ex)cart.push({name:ex.name,code:ex.code,art:mo.art||art,qty:q,isNew:false});
+      else{cart.push({name:name+' '+sz+'р',code:'',art,qty:q,isNew:true});if(mo)misses.push(sz);}
+      added+=q;
+    });
+  }
+  if(!added){alert('Поставь количество хотя бы на один размер');return;}
+  if(misses.length)alert('Размеров '+misses.join(', ')+' нет в базе — на них создадутся новые карточки. Остальные встанут в существующие.');
+  ['cBrand','cArt','cFrom','cTo','cName'].forEach(id=>document.getElementById(id).value='');
+  lastBase={};nameEdited=false;
+  document.getElementById('cSizes').innerHTML='';document.getElementById('matchBox').innerHTML='';
+  Object.keys(sel).forEach(k=>sel[k]=null);
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  refreshSeason(); refreshRanges();
+  renderCart(); tab('p1');
+}
+
+/* ---------- корзина / черновик / экспорт ---------- */
+function renderCart(){
+  const C=document.getElementById('cart');C.innerHTML='';
+  let qty=0;
+  cart.forEach((it,i)=>{
+    qty+=it.qty;
+    C.insertAdjacentHTML('beforeend',`<div class="cart-item"><div class="nm">${it.name}${it.isNew?' <span class="tag t-gold">новая</span>':' <span class="tag t-green">база</span>'}</div><div class="dt"><span>${it.qty} шт${it.art?' · арт. '+it.art:''}</span><span class="del" onclick="cart.splice(${i},1);renderCart()">удалить</span></div></div>`);
+  });
+  if(!cart.length)C.innerHTML='<div class="hint">Пока пусто — собери товар в «Конструкторе».</div>';
+  document.getElementById('totPos').textContent=cart.length+' поз.';
+  document.getElementById('totQty').textContent=qty+' пар';
+}
+function meta(){return{sklad:document.getElementById('sklad').value,gruz:document.getElementById('gruz').value};}
+function saveDraft(){
+  const blob=new Blob([JSON.stringify({meta:meta(),cart})],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='черновик_приёмки_'+(document.getElementById('gruz').value||'БН')+'.json';a.click();
+}
+function loadDraft(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);cart=d.cart||[];
+    document.getElementById('sklad').value=d.meta.sklad||'Склад';
+    document.getElementById('gruz').value=d.meta.gruz||'';
+    renderCart();alert('Черновик загружен: '+cart.length+' позиций');}catch(e){alert('Файл не читается');}};
+  r.readAsText(f);
+}
+/* 14 колонок боевого шаблона «Приход». Контрагент и цены — пустые: их
+   заполняет оператор перед импортом. Структура не меняется. */
+function exportXlsx(){
+  if(!cart.length){alert('Приёмка пустая');return;}
+  const m=meta();
+  const gruz=(m.gruz.trim()||'БН').replace(/\s+/g,'');
+  const d=new Date(),dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),yy=d.getFullYear();
+  const num='ПРИХ-'+gruz+'-'+dd+mm+yy;
+  const rows=[["ДокументНомер","ДокументДата","ДокументТип","ДокументСклад","ДокументКонтрагент","ТоварКод","ТоварАртикул","ТоварНаименование","ТоварГруппа","ТоварЕдиницаИзмерения","ДокументСтрокаКоличество","ДокументСтрокаЦена","ТоварЦенаПродажи","ДокументКомментарий"]];
+  cart.forEach(it=>rows.push([num,dd+'.'+mm+'.'+yy,"Прочее",m.sklad.trim()||'Склад',"",it.code,it.art,it.name,"","шт",it.qty,"","","Приёмка через приложение"]));
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Приход");
+  XLSX.writeFile(wb,num+".xlsx");
+}
+renderCart();
+</script>
+</body>
+</html>
